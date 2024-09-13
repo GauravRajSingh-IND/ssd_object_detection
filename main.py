@@ -2,6 +2,8 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
+from Module_13.main import classes
+
 FONTFACE = cv.FONT_HERSHEY_SIMPLEX
 FONT_SCALE = 0.7
 THICKNESS = 1
@@ -30,6 +32,33 @@ def display_text(image, text, x, y):
     # create a rectangle box.
     cv.rectangle(image, (x, y - dim[1] - baseline), (x + dim[0], y + baseline), (0, 0, 0), cv.FILLED)
     cv.putText(image, text, (x, y-5), FONTFACE, FONT_SCALE, (0, 255, 255), THICKNESS, cv.LINE_AA)
+
+def display_object(image, objects, threshold = 0.25):
+
+    rows = image.shape[0]
+    cols = image.shape[1]
+
+    # loop over each object detected
+    for num in range(objects.shape[2]):
+
+        # find class and confidence.
+        class_num = int(objects[0, 0, num, 1])
+        confidence = float(objects[0, 0, num, 2])
+
+        # get original coordinates from normalised coordinates
+        x = int(objects[0, 0, num, 3]) * cols
+        y = int(objects[0, 0, num, 4]) * rows
+        w = int(objects[0, 0, num, 5] * cols - x)
+        h = int(objects[0, 0, num, 6] * rows - y)
+
+        # check if the object detected is of good quality.
+        if confidence >= threshold:
+
+            display_text(image, classes[class_num], x, y)
+            cv.rectangle(image, (x, y), (x+w, y+h), (255, 255, 255), 2)
+
+        plt.imshow(image[:,:,::-1])
+        plt.show()
 
 model_file = "frozen_inference_graph.pb"
 config_file = "ssd_mobilenet_v2_coco_2018_03_29.pbtxt"
